@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <math.h> 
 typedef struct node_tree
 {
     char letter;
@@ -49,9 +49,8 @@ void addWord(WordTree*wt,char * word){
         if(trav->children[letter-97]==NULL){
             trav->children[letter-97]=initTreeNode(letter);
             trav->children[letter-97]->parent = trav;
-            trav=trav->children[letter-97];
-            
         }
+        trav=trav->children[letter-97];
         trav->count++;
     }
 }
@@ -71,4 +70,36 @@ void fillTree(WordTree* wt){
     for(int i=0;i<it;i++){
         addWord(wt,word[i]);
     }
+}
+int findCountrec(WordTreeNode* root,char letter, int pos){
+    if(root==NULL){
+        return 0;
+    }
+    if (pos==0){
+        if(root->letter==letter){
+            return root->count;
+        }
+        return 0;
+    }
+    int count=0;
+    for(int i=0;i<26;i++){
+        count+=findCountrec(root->children[i], letter, pos-1);
+    }
+    return count;
+}
+int findCount(WordTree* wt, char letter, int pos){
+    int count=0;
+    for(int i=0;i<26;i++){
+        count+=findCountrec(wt->roots[i],letter,pos);
+    }
+    return count;
+}
+
+float getProb(WordTree* wt, char letter, int pos){
+    return ((float)findCount(wt,letter,pos))/((float)wt->wordCount);
+}
+
+float getInfo(WordTree* wt, char letter, int pos){
+    float prob=((float)findCount(wt,letter,pos))/((float)wt->wordCount);
+    return -1* log2f(prob);
 }
