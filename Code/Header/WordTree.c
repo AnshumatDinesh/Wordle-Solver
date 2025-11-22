@@ -98,8 +98,24 @@ int findCount(WordTree* wt, char letter, int pos){
 float getProb(WordTree* wt, char letter, int pos){
     return ((float)findCount(wt,letter,pos))/((float)wt->wordCount);
 }
-
+float calculateInfo(float probability){
+    if(probability==0.0){
+        return 0;
+    }
+    if(probability==1.0){
+        return INFINITY;
+    }
+    return (-1*log2f(probability));
+}
 float getInfo(WordTree* wt, char letter, int pos){
     float prob=((float)findCount(wt,letter,pos))/((float)wt->wordCount);
-    return -1* log2f(prob);
+    return calculateInfo(prob)*prob;
+}
+
+void pruneTree(WordTree* wt, char letter , int pos){
+    
+}
+
+void removebranch(WordTree* wt, char letter, int pos){
+
 }
