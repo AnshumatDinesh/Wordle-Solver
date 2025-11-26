@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h> 
+
+#define LETTER_COUNT 26
+#define WORD_SIZE 5
+
+
 typedef struct node_tree
 {
     char letter;
@@ -19,46 +24,18 @@ WordTreeNode* initTreeNode(char letter){
     new->letter=letter;
     new->count=0;
     new->parent=NULL;
-    new->children=(WordTreeNode**) malloc(26*sizeof(WordTreeNode*));
-    for(int i=0;i<26;i++){
+    new->children=(WordTreeNode**) malloc(LETTER_COUNT*sizeof(WordTreeNode*));
+    for(int i=0;i<LETTER_COUNT;i++){
         new->children[i]=NULL;
     }
     return new;
 }
 
-WordTree* initTree(){
-    WordTree* new= (WordTree*) malloc(sizeof(WordTree));
-    new->count=0;
-    new->children=(WordTreeNode**) malloc(26*sizeof(WordTreeNode*));
-    for(int i=0;i<26;i++){
-        new->children[i]=NULL;
-
-    }
-    new->parent=NULL;
-    new->letter='\0';
-    return new;
-}
-
-void addWordrecursive(WordTree*wt,char * word){
-    if(word[0]=='\0'){
-        return;
-    }
-    if(wt->children[word[0]-97]==NULL){
-        wt->children[word[0]-97]=initTreeNode(word[0]);
-        wt->children[word[0]-97]->parent=wt;
-    }
-    WordTreeNode* trav=wt->children[word[0]-97];
-    trav->count++;
-    if(wt->parent==NULL){
-        wt->count++;
-    }
-    addWordrecursive(trav,word+1);
-}
 void addWord(WordTree*wt,char * word){
     int i=0;
     WordTreeNode* trav=wt;
     wt->count++;
-    while(i<5){
+    while(i<WORD_SIZE){
         if(trav->children[word[i]-97]==NULL){
             trav->children[word[i]-97]=initTreeNode(word[i]);
             trav->children[word[i]-97]->parent=trav;
@@ -75,9 +52,9 @@ void fillTree(WordTree* wt){
         printf("Unable ot open the word file \n");
         return;
     }
-    char word[5000][5];
+    char word[5000][WORD_SIZE];
     int it=0;
-    while (fscanf(fptr, "%5s", word[it]) == 1) {
+    while (fscanf(fptr, "%WORD_SIZEs", word[it]) == 1) {
         it++;
     };
     fclose(fptr);
@@ -97,48 +74,21 @@ int findCount(WordTreeNode* root,char letter, int pos){
         return 0;
     }
     int count=0;
-    for(int i=0;i<26;i++){
+    for(int i=0;i<LETTER_COUNT;i++){
         count+=findCount(root->children[i], letter, pos-1);
     }
     return count;
 }
 
-float getProb(WordTree* wt, char letter, int pos){
-    return ((float)findCount(wt,letter,pos))/((float)wt->count);
-}
-float calculateInfo(float probability){
-    if(probability==0.0){
-        return 0;
-    }
-    if(probability==1.0){
-        return INFINITY;
-    }
-    return (-1*log2f(probability));
-}
-float getInfo(WordTree* wt, char letter, int pos){
-    float prob=((float)findCount(wt,letter,pos))/((float)wt->count);
-    return calculateInfo(prob)*prob;
-}
+
 void deleteNode(WordTreeNode* node){
     if(node==NULL){
         return;
     }
-    for(int i=0;i<26;i++){
+    for(int i=0;i<LETTER_COUNT;i++){
         deleteNode(node->children[i]);
     }
     node->parent->children[node->letter-97]=NULL;
-    node->parent=NULL;
-    free(node);
-    return;
-}
-void deleteLeaf(WordTreeNode* node){
-    if(node==NULL){
-        return;
-    }
-    node->parent->children[node->letter-97]=NULL;
-    if(isLeaf(node->parent)){
-        deleteNode(node->parent);
-    }
     node->parent=NULL;
     free(node);
     return;
@@ -153,11 +103,11 @@ WordTreeNode* getNode(WordTree* wt, char letter, int pos){
     int i=0;
     while(getNode(wt->children[i],letter,pos-1)==NULL){
         i++;
-        if(i==26){
+        if(i==LETTER_COUNT){
             break;
         }
     }
-    if(i==26){
+    if(i==LETTER_COUNT){
         return NULL;
     }
     return getNode(wt->children[i],letter,pos-1);
@@ -168,7 +118,7 @@ void recount(WordTree* wt){
         return;
     }
     wt->count=0;
-    for(int i=0;i<26;i++){
+    for(int i=0;i<LETTER_COUNT;i++){
         recount(wt->children[i]);
         if(wt->children[i]!=NULL){
             wt->count+=wt->children[i]->count;
@@ -184,7 +134,7 @@ int isLeaf(WordTreeNode*root){
         return 0;
     }
     int ret=1;
-    for(int i=0;i<26;i++){
+    for(int i=0;i<LETTER_COUNT;i++){
         if(root->children[i]!=NULL){
             ret=0;
         }
@@ -206,7 +156,7 @@ WordTreeNode* findWordWithout(WordTreeNode* root, char letter){
     WordTreeNode* ret=findWordWithout(root->children[i],letter);
     while (ret==NULL){
         i++;
-        if(i==26){
+        if(i==LETTER_COUNT){
             break;
         }
         ret=findWordWithout(root->children[i],letter);
@@ -221,12 +171,12 @@ void removeLetter(WordTree* wt, char letter , int pos){
     }
 }
 void pruneBlack(WordTree* wt , char letter, int pos){
-    for(int i=0;i<5;i++){
+    for(int i=0;i<WORD_SIZE;i++){
         removeLetter(wt,letter,i);
     }
 }
 void pruneGreen(WordTree* wt, char letter,int pos){
-    for(int i=0;i<26;i++){
+    for(int i=0;i<LETTER_COUNT;i++){
         if(i+97!=letter){
             removeLetter(wt,i+97,pos);
         }
@@ -249,16 +199,16 @@ void clean(WordTree* root, int pos){
         return;
     }
     if(isLeaf(root)){
-        if(pos!=5){
+        if(pos!=WORD_SIZE){
             deleteNode(root);
         }
         return;
     }
-    for(int i=0;i<26;i++){
+    for(int i=0;i<LETTER_COUNT;i++){
         clean(root->children[i],pos+1);
     }
     if(isLeaf(root)){
-        if(pos!=5){
+        if(pos!=WORD_SIZE){
             deleteNode(root);
         }
         return;

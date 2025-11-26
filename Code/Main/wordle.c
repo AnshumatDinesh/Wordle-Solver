@@ -13,7 +13,7 @@ int isdone(char * result){
     return 0;
 }
 int main(){
-    WordTree* Tree=initTree();
+    WordTree* Tree=initTreeNode('\0');
     printf("Loading the Data\n");
     fillTree(Tree);
     printf("Data Loaded Completed\n");

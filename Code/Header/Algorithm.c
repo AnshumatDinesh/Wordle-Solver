@@ -2,6 +2,25 @@
 #include <stdio.h>
 #include "WordTree.c"
 
+float calculateInfo(float probability){
+    if(probability==0.0){
+        return 0;
+    }
+    if(probability==1.0){
+        return INFINITY;
+    }
+    return (-1*log2f(probability));
+}
+
+float getProb(WordTree* wt, char letter, int pos){
+    return ((float)findCount(wt,letter,pos))/((float)wt->count);
+}
+
+float getInfo(WordTree* wt, char letter, int pos){
+    float prob=((float)findCount(wt,letter,pos))/((float)wt->count);
+    return calculateInfo(prob)*prob;
+}
+
 char getMaxInfoLocal(WordTreeNode** roots, int count){
     float max=0.0;
     char maxChar='\0';
@@ -18,6 +37,7 @@ char getMaxInfoLocal(WordTreeNode** roots, int count){
     }
     return maxChar;
 }
+
 char getMaxInfoGlobal(WordTree* wt, int pos, WordTree* node){
     float max=0.0;
     char maxChar='\0';
@@ -32,6 +52,7 @@ char getMaxInfoGlobal(WordTree* wt, int pos, WordTree* node){
     }
     return maxChar;
 }
+
 char* getFastChoice(WordTree* wt){
     char * word= (char*) malloc(sizeof(char)*6);
     word[5]='\0';
@@ -44,6 +65,7 @@ char* getFastChoice(WordTree* wt){
     }
     return word;
 }
+
 char* getTopChoice(WordTree* wt){
     char * word= (char*) malloc(sizeof(char)*6);
     word[5]='\0';
